@@ -43,7 +43,7 @@ export default class Main extends Component<{}> {
       backgroundColor: "#F74F4F"
     },
     headerRight: (
-      <TouchableOpacity onPress={() => navigation.navigate("ListOrderedItems")}>
+      <TouchableOpacity onPress={() => navigation.navigate("ListOrderedItemsScreen")}>
         <ImageBackground
           source={require("../img/ListOrderLogo.png")}
           style={styles.orderItemLogos}
@@ -65,17 +65,16 @@ export default class Main extends Component<{}> {
     this.itemRef = firebaseApp.database().ref();
     this.state = {
       listItems: [],
-      listItemsOrder: [],
-      refreshing: false,
       child:
         this.props.navigation.state.params == undefined
           ? "Smoothies"
           : this.props.navigation.state.params.child
     };
+    global.ListOrderedItems = [];
   }
 
   componentWillMount() {
-    var arrayTempItem = [];
+    let arrayTempItem = [];
     this.itemRef.child("Drink").on("child_added", snapshot => {
       if (this.state.child == snapshot.val().category) {
         const tempPrice = this.convertMoney(snapshot.val().price + "");
@@ -102,14 +101,6 @@ export default class Main extends Component<{}> {
     });
   }
 
-  addItemToListOrder(item) {
-    this.setState({
-      title: item.title,
-      price: item.price,
-      image: item.image
-    });
-  }
-
   render() {
     const { navigate } = this.props.navigation;
     return (
@@ -119,7 +110,13 @@ export default class Main extends Component<{}> {
           numColumns={2}
           data={this.state.listItems}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => this.addItemToListOrder(item)}>
+            <TouchableOpacity
+              onPress={() =>
+                this.props.navigation.navigate("DetailItemScreen", {
+                  item: item
+                })
+              }
+            >
               <View style={styles.item}>
                 <ImageBackground
                   source={{ uri: item.image }}
@@ -128,7 +125,7 @@ export default class Main extends Component<{}> {
                     height: responsiveWidth(50)
                   }}
                 />
-                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.price}>{item.price} đ</Text>
               </View>
             </TouchableOpacity>
@@ -154,7 +151,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center"
   },
-  title: {},
+  name: {},
   price: {
     fontSize: 25,
     color: "#E91E63"
