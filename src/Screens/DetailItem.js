@@ -14,6 +14,8 @@ import {
   responsiveFontSize
 } from "../components/Responsive.js";
 
+import { firebaseApp } from "../api/Firebase";
+
 export default class DetailItem extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: `${navigation.state.params.item.name}`,
@@ -41,6 +43,7 @@ export default class DetailItem extends Component {
 
   constructor(props) {
     super(props);
+    this.itemRef = firebaseApp.database().ref();
     this.state = {
       item: this.props.navigation.state.params.item,
       numberOfItem: 1
@@ -58,13 +61,68 @@ export default class DetailItem extends Component {
   }
 
   addItemToListOrder() {
-    global.ListOrderedItems.push({
-      item: this.state.item,
-      numberOfItem: this.state.numberOfItem
-    });
-    this.refs.toast.show(
-      "Thêm thành công " + this.state.item.name + " vào giỏ hàng"
-    );
+    let arrayRecipes = {};
+    let arrayWareHoust = {};
+    let flag = false;
+    let listenerRecipes = this.itemRef
+      .child("Recipes")
+      .child(this.state.item.name)
+      .child("ingredient")
+      .on("value", snapshot => {
+        for (let key in snapshot.val()) {
+          for (let key1 in snapshot.val()[key]) {
+            quantityDatabase =
+              snapshot.val()[key][key1] * this.state.numberOfItem;
+            arrayRecipes[key1] = quantityDatabase;
+            let listnerWareHouse = this.itemRef
+              .child("Warehouse")
+              .child("Ingredients")
+              .child(key1)
+              .once("value", snapshotWareHouse => {
+                arrayWareHoust[key1] = snapshotWareHouse.val().quantity;
+                if (
+                  parseInt(snapshotWareHouse.val().quantity) <=
+                  parseInt(quantityDatabase)
+                ) {
+                  flag = true;
+                }
+                if (key == snapshot.val().length - 1) {
+                  if (flag == false) {
+                    global.ListOrderedItems.push({
+                      item: this.state.item,
+                      numberOfItem: this.state.numberOfItem
+                    });
+                    for (let key in arrayRecipes) {
+                      for (let key1 in arrayWareHoust) {
+                        if (key.trim() + "" == key1.trim() + "") {
+                          this.itemRef
+                            .child("Warehouse")
+                            .child("Ingredients")
+                            .child(key1)
+                            .set({
+                              quantity: arrayWareHoust[key1] - arrayRecipes[key]
+                            });
+                        }
+                      }
+                    }
+                    this.refs.toast.show(
+                      "Thêm thành công " +
+                        this.state.item.name +
+                        " vào giỏ hàng"
+                    );
+                  } else {
+                    this.refs.toast.show("Hết nguyên liệu " + key1);
+                  }
+                }
+              });
+          }
+        }
+        this.itemRef
+          .child("Recipes")
+          .child(this.state.item.name)
+          .child("ingredient")
+          .off("value", listenerRecipes);
+      });
   }
 
   render() {

@@ -6,7 +6,8 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ImageBackground
+  ImageBackground,
+  Platform
 } from "react-native";
 import { firebaseApp } from "./api/Firebase";
 import {
@@ -21,20 +22,10 @@ class MainDrawer extends Component {
     this.itemRef = firebaseApp.database().ref();
     this.state = {
       allCatelogy: ["Coffee", "Smoothies", "Itanlian Soda"],
-      coverPhoto: "",
-      avatar: "",
-      name: ""
-    };
-  }
-
-  componentDidMount() {
-    this.setState({
       coverPhoto: global.userCoverPhoto,
       avatar: global.userAvatar,
-      name: global.userName,
-      email: global.userEmail,
-      id: global.userId
-    });
+      email: global.userEmail
+    };
   }
 
   signOut() {
@@ -58,21 +49,22 @@ class MainDrawer extends Component {
     return (
       <View style={styles.container}>
         <ImageBackground
-          source={{ uri: this.state.coverPhoto }}
+          source={{ uri: global.userCoverPhoto }}
           style={styles.coverPhoto}
         >
           <View style={styles.containerTextImage}>
             <ImageBackground
-              source={{ uri: this.state.avatar }}
+              source={{ uri: global.userAvatar }}
               style={styles.avatar}
             />
-            <Text style={styles.text}>{this.state.name}</Text>
+            <Text style={styles.text}>{global.userName}</Text>
             <Text style={[styles.text, { opacity: 0.8 }]}>
-              {this.state.email}
+              {global.userEmail}
             </Text>
           </View>
         </ImageBackground>
         <Text>{this.state.name}</Text>
+        <Text style={styles.header}>Thực đơn</Text>
         <FlatList
           style={styles.scrollView}
           data={this.state.allCatelogy}
@@ -106,13 +98,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: "5%"
   },
-  coverPhoto: {
-    width: responsiveWidth(50),
-    height: responsiveHeight(50)
+  title: {
+    marginLeft: "3%",
+    marginTop: "1%",
+    fontSize: 25,
+    fontWeight: "bold"
+  },
+  containerItem: {
+    marginLeft: "10%",
+    marginTop: "1%",
+    fontSize: 21
   },
   avatar: {
-    width: responsiveWidth(50),
-    height: responsiveHeight(50)
+    margin: "3%",
+    width: 60,
+    height: 60,
+    ...Platform.select({
+      ios: {
+        borderRadius: 30.5
+      },
+      android: {
+        borderRadius: 55
+      }
+    })
+  },
+  coverPhoto: {
+    width: "100%",
+    height: 260
+  },
+  text: {
+    backgroundColor: "transparent",
+    marginLeft: "3%",
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#FFFFFF"
+  },
+  textHeader: {
+    marginLeft: "3%",
+    fontSize: 17,
+    fontWeight: "bold",
+    marginLeft: "3%",
+    backgroundColor: "transparent"
+  },
+  containerTextImage: {
+    marginTop: "30%"
+  },
+  containerText: {
+    flexDirection: "row",
+    alignItems: "center"
   }
 });
 

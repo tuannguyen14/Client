@@ -16,6 +16,8 @@ import {
   responsiveFontSize
 } from "../components/Responsive.js";
 
+import { firebaseApp } from "../api/Firebase";
+
 // create a component
 class ListOrderedItems extends Component {
   static navigationOptions = ({ navigation }) => ({
@@ -35,13 +37,57 @@ class ListOrderedItems extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      ListOrdered: global.ListOrderedItems
+    };
+    this.itemRef = firebaseApp.database().ref();
   }
+
+  submit() {
+    global.ListOrderedItems.forEach(item => {
+      this.itemRef
+        .child("Ordered")
+        .child(item.item.name)
+        .set({
+          Image: item.item.image,
+          NumberOfItem: item.numberOfItem,
+          Date: new Date().getTime(),
+          Price: parseInt(item.item.price.replace(".", ""))
+        });
+    });
+    this.refs.toast.show("Đặt hàng thành công");
+  }
+
+  // deleteItem(index) {
+  //   if (this.state.ListOrdered.length == 1) {
+  //     this.state.ListOrdered = [];
+  //   } else {
+  //     this.setState({
+  //       ListOrdered: this.deleteByValue(this.state.ListOrdered, index)
+  //     });
+  //   }
+  //   if (this.state.ListOrdered.length == 1) {
+  //     global.ListOrderedItems = [];
+  //   } else {
+  //     global.ListOrderedItems = this.deleteByValue(
+  //       global.ListOrderedItems,
+  //       index
+  //     );
+  //   }
+  // }
+
+  deleteByValue(array, index) {
+    delete array[index];
+    return array;
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <FlatList
-          data={global.ListOrderedItems}
-          renderItem={({ item }) => (
+          data={this.state.ListOrdered}
+          extraData={this.state}
+          renderItem={({ item, index }) => (
             <View style={styles.containerItems}>
               <View style={styles.items}>
                 <ImageBackground
@@ -52,22 +98,16 @@ class ListOrderedItems extends Component {
                   <Text style={styles.name}>{item.item.name}</Text>
                   <Text style={styles.price}>{item.item.price} đ</Text>
                   <View style={styles.containerBinAndNumberOfItem}>
-                    <TouchableOpacity>
+                    {/* <TouchableOpacity onPress={() => this.deleteItem(index)}>
                       <ImageBackground
                         source={require("../img/BinIcon.png")}
                         style={styles.imageBin}
                       />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     <View style={styles.containerNumberOfItem}>
-                      <TouchableOpacity onPress={() => this.subtract()}>
-                        <Text style={styles.subtract}>-</Text>
-                      </TouchableOpacity>
                       <Text style={styles.numberOfItem}>
-                        {item.numberOfItem}
+                        x{item.numberOfItem}
                       </Text>
-                      <TouchableOpacity onPress={() => this.plus()}>
-                        <Text style={styles.plus}>+</Text>
-                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
@@ -75,6 +115,15 @@ class ListOrderedItems extends Component {
             </View>
           )}
         />
+        <TouchableOpacity
+          onPress={() => this.submit()}
+          style={styles.containerButton}
+        >
+          <View style={styles.button}>
+            <Text style={styles.button_login}>Đặt hàng</Text>
+          </View>
+        </TouchableOpacity>
+        <Toast ref="toast" />
       </View>
     );
   }
@@ -139,6 +188,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center"
+  },
+  button: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(247, 79, 79, 70)",
+    height: 45,
+    borderRadius: 15
+  },
+  containerButton: {
+    marginBottom: "3%"
   }
 });
 

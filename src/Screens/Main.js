@@ -43,7 +43,9 @@ export default class Main extends Component<{}> {
       backgroundColor: "#F74F4F"
     },
     headerRight: (
-      <TouchableOpacity onPress={() => navigation.navigate("ListOrderedItemsScreen")}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("ListOrderedItemsScreen")}
+      >
         <ImageBackground
           source={require("../img/ListOrderLogo.png")}
           style={styles.orderItemLogos}
@@ -70,7 +72,6 @@ export default class Main extends Component<{}> {
           ? "Smoothies"
           : this.props.navigation.state.params.child
     };
-    global.ListOrderedItems = [];
   }
 
   componentWillMount() {
@@ -82,7 +83,6 @@ export default class Main extends Component<{}> {
           name: snapshot.key,
           image: snapshot.val().imageUrl,
           price: tempPrice,
-          ingredient: snapshot.val().ingredient
         });
       }
       this.setState({
@@ -109,6 +109,7 @@ export default class Main extends Component<{}> {
           style={styles.flatlist}
           numColumns={2}
           data={this.state.listItems}
+          extraData={this.state}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() =>
