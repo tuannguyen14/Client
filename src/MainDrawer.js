@@ -87,6 +87,10 @@ class MainDrawer extends Component {
 
 // define your styles
 const styles = StyleSheet.create({
+  header: {
+    fontSize: 21,
+    fontWeight: "bold",
+  },
   container: {
     flex: 1,
     backgroundColor: "#FAFAFA"
